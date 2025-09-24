@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm
+from scipy.stats import norm,  binom
+import seaborn as sns
+import pandas as pd
 
 class Ball:
     
@@ -32,7 +34,7 @@ class Board:
         for ball in self.balls:
             position = ball.show()
             # print("position:", position, position[1]-position[0])
-            res.append(position[1]-position[0])
+            res.append(position[0])
         return res
 
 
@@ -43,23 +45,26 @@ def simulate(n_balls, n_levels):
     for _ in range(n_levels):
         board.step()
     experimental_data = board.show()
-    # experimental_data = map(lambda x: x+(n_levels//2), experimental_data)
 
-    plt.hist(experimental_data, density=True, alpha=0.6, color='skyblue', edgecolor='black')
-    # counts, bin_edges = np.histogram(experimental_data, bins=n_levels, density=True)
+    return experimental_data
 
-    # Midpoints of bins for bar plot
-    # bin_centers = 0.5 * (bin_edges[1:] + bin_edges[:-1])
+def plot(experimental_data, n_levels):
 
-    # Plot barplot instead of histogram
-    # plt.bar(bin_centers, counts, width=bin_edges[1] - bin_edges[0], alpha=0.6, color='skyblue', edgecolor='black')
+    df = pd.DataFrame({"values": experimental_data})
 
-    mu=0
+    # Count frequencies
+    freqs = df["values"].value_counts(normalize=True).sort_index().reset_index()
+    freqs.columns = ["value", "count"]
+
+    # Barplot
+    sns.barplot(x="value", y="count", data=freqs, color="skyblue", edgecolor="black")
+
+
+    mu=n_levels/2
     std=n_levels/4
-
-    xmin, xmax = plt.xlim()
-    max_range = max(abs(xmin), abs(xmax)) 
-    x = np.linspace(-max_range, max_range, 100)
+    # xmin, xmax = plt.xlim()
+    # max_range = max(abs(xmin), abs(xmax)) 
+    x = np.linspace(0, n_levels, 100)
     p = norm.pdf(x, mu, std)
     plt.plot(x, p, 'r', linewidth=2)
 
@@ -71,7 +76,13 @@ def simulate(n_balls, n_levels):
 
 if __name__ == "__main__":
     
-    n=6  # num levels
+    n=20  # num levels
     N=100000  # num balls
 
-    simulate(n_balls=N, n_levels=n)
+    data = simulate(n_balls=N, n_levels=n)
+    # print(data)
+    plot(data, n)
+
+    ## binomial
+    # for r in range(0, n+1):
+    #     print(r, ": ", binom.pmf(r, n, 0.5))
