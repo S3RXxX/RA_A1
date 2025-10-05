@@ -57,14 +57,16 @@ def plot(experimental_data, n_levels):
     freqs.columns = ["value", "count"]
 
     # Barplot
-    sns.barplot(x="value", y="count", data=freqs, color="skyblue", edgecolor="black")
+    # sns.barplot(x="value", y="count", data=freqs, color="skyblue", edgecolor="black")
+    x_vals = freqs["value"]
+    y_vals = freqs["count"]
+    plt.bar(x_vals, y_vals, width=0.8, color="skyblue", edgecolor="black", alpha=0.6, label="Experimental (Binomial)")
 
 
     mu=n_levels/2
-    std=n_levels/4
-    # xmin, xmax = plt.xlim()
-    # max_range = max(abs(xmin), abs(xmax)) 
-    x = np.linspace(0, n_levels, 100)
+    std=np.sqrt(n_levels/4)
+    print(f"mu={mu}; std={std}")
+    x = np.linspace(0, n_levels, 10*n_levels)
     p = norm.pdf(x, mu, std)
     plt.plot(x, p, 'r', linewidth=2)
 
@@ -77,9 +79,10 @@ def plot(experimental_data, n_levels):
 if __name__ == "__main__":
     
     n=20  # num levels
-    N=100000  # num balls
+    N=20000  # num balls
 
     data = simulate(n_balls=N, n_levels=n)
+    print(f"min: {min(data)}, max: {max(data)}")
     # print(data)
     plot(data, n)
 
