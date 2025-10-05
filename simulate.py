@@ -48,7 +48,10 @@ def simulate(n_balls, n_levels):
 
     return experimental_data
 
-def plot(experimental_data, n_levels):
+def plot(experimental_data, n_levels, b_plot=True):
+
+    mu=n_levels/2
+    std=np.sqrt(n_levels/4)
 
     df = pd.DataFrame({"values": experimental_data})
 
@@ -56,25 +59,38 @@ def plot(experimental_data, n_levels):
     freqs = df["values"].value_counts(normalize=True).sort_index().reset_index()
     freqs.columns = ["value", "count"]
 
+    # Create full range of possible values (0..n_levels)
+    all_values = np.arange(0, n_levels + 1)
+
+    # Merge with all possible values, filling missing frequencies with 0
+    full_freqs = pd.DataFrame({"value": all_values}).merge(freqs, on="value", how="left").fillna(0)
+
     # Barplot
     # sns.barplot(x="value", y="count", data=freqs, color="skyblue", edgecolor="black")
-    x_vals = freqs["value"]
-    y_vals = freqs["count"]
-    plt.bar(x_vals, y_vals, width=0.8, color="skyblue", edgecolor="black", alpha=0.6, label="Experimental (Binomial)")
+    x_vals = full_freqs["value"]
+    y_vals = full_freqs["count"]
 
+    if b_plot:
+        plt.bar(x_vals, y_vals, width=0.8, color="skyblue", edgecolor="black", alpha=0.6, label="Experimental (Binomial)")
 
-    mu=n_levels/2
-    std=np.sqrt(n_levels/4)
-    print(f"mu={mu}; std={std}")
-    x = np.linspace(0, n_levels, 10*n_levels)
-    p = norm.pdf(x, mu, std)
-    plt.plot(x, p, 'r', linewidth=2)
+        granularity = 10
+        print(f"mu={mu}; std={std}")
+        x = np.linspace(0, n_levels, granularity*n_levels+1)
+        p = norm.pdf(x, mu, std)
+        plt.plot(x, p, 'r', linewidth=2)
 
-    plt.title(f"Distribution comparison")
-    plt.xlabel("k")
-    plt.ylabel("P[X=k]")
+        plt.title(f"Distribution comparison")
+        plt.xlabel("k")
+        plt.ylabel("P[X=k]")
 
-    plt.show()
+        plt.show()
+
+    total_dif = 0
+    for c in x_vals:
+        dif = y_vals[c]-norm.pdf(c, mu, std)
+        total_dif+=np.abs(dif)
+        print(f"Difference in {c} is {dif}")
+    print(f"Total absolute difference: {total_dif}")
 
 if __name__ == "__main__":
     
@@ -84,7 +100,7 @@ if __name__ == "__main__":
     data = simulate(n_balls=N, n_levels=n)
     print(f"min: {min(data)}, max: {max(data)}")
     # print(data)
-    plot(data, n)
+    plot(data, n, b_plot=True)
 
     ## binomial
     # for r in range(0, n+1):
