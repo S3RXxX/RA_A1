@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm,  binom
+from scipy.stats import norm,  binom, chi2
 import seaborn as sns
 import pandas as pd
 
@@ -37,7 +37,26 @@ class Board:
             res.append(position[0])
         return res
 
+def chi2_format(expected_counts, obs_counts):
+    while np.any(expected_counts < 5):
+        if expected_counts[0] < 5:
+            expected_counts[1] += expected_counts[0]
+            obs_counts[1] += obs_counts[0]
+            expected_counts = expected_counts[1:]
+            obs_counts = obs_counts[1:]
+        elif expected_counts[-1] < 5:
+            expected_counts[-2] += expected_counts[-1]
+            obs_counts[-2] += obs_counts[-1]
+            expected_counts = expected_counts[:-1]
+            obs_counts = obs_counts[:-1]
+        else:
+            break
 
+    chi2_stat = np.sum((obs_counts - expected_counts)**2 / expected_counts)
+    print(f"CHI2 statistic {chi2_stat}")
+    df = len(expected_counts) - 1 - 2  # minus 2 for estimated mean and std
+    p_value = 1 - chi2.cdf(chi2_stat, df)
+    return p_value
 
 def simulate(n_balls, n_levels):
     board = Board(n_balls)
@@ -85,14 +104,22 @@ def plot(experimental_data, n_levels, b_plot=True):
 
         plt.show()
 
+    obs_rel = np.array([norm.pdf(c, mu, std) for c in x_vals])
+
     # mean quadratic error
     tse = 0
     for c in x_vals:
-        dif = y_vals[c]-norm.pdf(c, mu, std)
+        dif = y_vals[c]-obs_rel[c]
         tse+=(dif)**2
-        print(f"Difference in {c} is {dif}")
+        # print(f"Difference in {c} is {dif}")
     mse = tse/(n_levels+1)
     print(f"Mean quadratic error: {mse}")
+
+    # performa CHI^2
+    expected_counts = y_vals.values * n_levels
+    obs_counts = obs_rel * n_levels
+    p_val = chi2_format(expected_counts=expected_counts, obs_counts=obs_counts)
+    print(f"p value = {p_val}")
 
 if __name__ == "__main__":
     
