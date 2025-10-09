@@ -67,7 +67,7 @@ def simulate(n_balls, n_levels):
 
     return experimental_data
 
-def plot(experimental_data, n_levels, b_plot=True):
+def plot(experimental_data, n_levels, N_balls, b_plot=True):
 
     mu=n_levels/2
     std=np.sqrt(n_levels/4)
@@ -101,8 +101,8 @@ def plot(experimental_data, n_levels, b_plot=True):
         plt.title(f"Distribution comparison")
         plt.xlabel("k")
         plt.ylabel("P[X=k]")
-
-        plt.show()
+        plt.savefig(f"plots/{n_levels}Levels_{N_balls}Balls.png")
+        plt.close()
 
     obs_rel = np.array([norm.pdf(c, mu, std) for c in x_vals])
 
@@ -120,16 +120,23 @@ def plot(experimental_data, n_levels, b_plot=True):
     obs_counts = obs_rel * n_levels
     p_val = chi2_format(expected_counts=expected_counts, obs_counts=obs_counts)
     print(f"p value = {p_val}")
+    return mse, p_val
 
 if __name__ == "__main__":
     
-    n=20  # num levels
-    N=20000  # num balls
-
-    data = simulate(n_balls=N, n_levels=n)
-    print(f"min: {min(data)}, max: {max(data)}")
-    # print(data)
-    plot(data, n, b_plot=True)
+    n_=[20,80,120,300,500]  # num levels
+    N_=[10,100,500,1000,10000,20000]  # num balls
+    data_ = {"MSE": [], "Chi2pvalue": []}
+    for n in n_:
+        for N in N_:
+            data = simulate(n_balls=N, n_levels=n)
+            print(f"min: {min(data)}, max: {max(data)}")
+            # print(data)
+            mse, chi2_ = plot(data, n, N, b_plot=True)
+            data_["MSE"].append(mse)
+            data_["Chi2pvalue"].append(chi2_)
+    data_ = pd.DataFrame(data_)
+    data_.to_csv("./data.csv", index=False)
 
     ## binomial
     # for r in range(0, n+1):
