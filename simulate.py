@@ -85,12 +85,14 @@ def plot(experimental_data, n_levels, b_plot=True):
 
         plt.show()
 
-    total_dif = 0
+    # mean quadratic error
+    tse = 0
     for c in x_vals:
         dif = y_vals[c]-norm.pdf(c, mu, std)
-        total_dif+=np.abs(dif)
+        tse+=(dif)**2
         print(f"Difference in {c} is {dif}")
-    print(f"Total absolute difference: {total_dif}")
+    mse = tse/(n_levels+1)
+    print(f"Mean quadratic error: {mse}")
 
 if __name__ == "__main__":
     
