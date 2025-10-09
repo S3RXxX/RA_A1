@@ -126,7 +126,7 @@ if __name__ == "__main__":
     
     n_=[20,80,120,300,500]  # num levels
     N_=[10,100,500,1000,10000,20000]  # num balls
-    data_ = {"MSE": [], "Chi2pvalue": []}
+    data_ = {"MSE": [], "Chi2pvalue": [], "n":[], "N":[]}
     for n in n_:
         for N in N_:
             data = simulate(n_balls=N, n_levels=n)
@@ -135,6 +135,8 @@ if __name__ == "__main__":
             mse, chi2_ = plot(data, n, N, b_plot=True)
             data_["MSE"].append(mse)
             data_["Chi2pvalue"].append(chi2_)
+            data_["n"].append(n)
+            data_["N"].append(N)
     data_ = pd.DataFrame(data_)
     data_.to_csv("./data.csv", index=False)
 
