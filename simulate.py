@@ -38,19 +38,34 @@ class Board:
         return res
 
 def chi2_format(expected_counts, obs_counts):
+    i = 0
     while np.any(expected_counts < 5):
-        if expected_counts[0] < 5:
-            expected_counts[1] += expected_counts[0]
-            obs_counts[1] += obs_counts[0]
-            expected_counts = expected_counts[1:]
-            obs_counts = obs_counts[1:]
-        elif expected_counts[-1] < 5:
-            expected_counts[-2] += expected_counts[-1]
-            obs_counts[-2] += obs_counts[-1]
-            expected_counts = expected_counts[:-1]
-            obs_counts = obs_counts[:-1]
+        if i < len(expected_counts)//2:
+            if expected_counts[i] < 5:
+                expected_counts[i+1] += expected_counts[i]
+                expected_counts = np.delete(expected_counts,i)
+                obs_counts = np.delete(obs_counts,i)
+                i-=1
         else:
-            break
+            if expected_counts[i] < 5:
+                expected_counts[i-1] += expected_counts[i]
+                expected_counts = np.delete(expected_counts,i)
+                obs_counts = np.delete(obs_counts,i)
+                i -= 1
+        i+=1
+
+        # if expected_counts[0] < 5:
+        #     expected_counts[1] += expected_counts[0]
+        #     obs_counts[1] += obs_counts[0]
+        #     expected_counts = expected_counts[1:]
+        #     obs_counts = obs_counts[1:]
+        # elif expected_counts[-1] < 5:
+        #     expected_counts[-2] += expected_counts[-1]
+        #     obs_counts[-2] += obs_counts[-1]
+        #     expected_counts = expected_counts[:-1]
+        #     obs_counts = obs_counts[:-1]
+        # else:
+        #     break
 
     chi2_stat = np.sum((obs_counts - expected_counts)**2 / expected_counts)
     print(f"CHI2 statistic {chi2_stat}")
