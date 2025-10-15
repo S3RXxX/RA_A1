@@ -38,25 +38,9 @@ class Board:
         return res
 
 def chi2_p(expected_counts, obs_counts):
-    # i = 0
-    # j = len(expected_counts)-1
-    # while np.any(expected_counts < 5):
-    #     if i < len(expected_counts)//2:
-    #         if expected_counts[i] < 5:
-    #             expected_counts[i+1] += expected_counts[i]
-    #             expected_counts = np.delete(expected_counts,i)
-    #             obs_counts = np.delete(obs_counts,i)
-    #             i-=1
-    #             j-=1
-    #     if j > len(expected_counts)//2:
-    #         if expected_counts[j] < 5:
-    #             expected_counts[j-1] += expected_counts[j]
-    #             expected_counts = np.delete(expected_counts,j)
-    #             obs_counts = np.delete(obs_counts,j)
-    #     i+=1
-    #     j-=1
-
     while np.any(expected_counts < 5):
+        if len(expected_counts) < 2:
+            break
         if expected_counts[0] < 5:
             expected_counts[1] += expected_counts[0]
             obs_counts[1] += obs_counts[0]
@@ -92,7 +76,8 @@ def simulate(n_balls, n_levels):
     return experimental_data
 
 def plot(experimental_data, n_levels, N_balls, b_plot=True):
-
+    global seed
+    
     mu=n_levels/2
     std=np.sqrt(n_levels/4)
 
@@ -123,7 +108,7 @@ def plot(experimental_data, n_levels, N_balls, b_plot=True):
         plt.title(f"Distribution comparison")
         plt.xlabel("k")
         plt.ylabel("P[X=k]")
-        plt.savefig(f"plots/{n_levels}Levels_{N_balls}Balls.png")
+        plt.savefig(f"plots/{n_levels}Levels_{N_balls}Balls_{seed}Seed.png")
         plt.close()
 
     obs_rel = np.array([norm.pdf(c, mu, std) for c in x_vals])
@@ -158,7 +143,7 @@ if __name__ == "__main__":
 
     seeds = [42, 67, 77, 69, 13]
     n_=[x for x in range(5, 100, 5)]  # num levels  # num levels
-    N_=[5]+[x for x in range(10, 10000, 20)]  # num balls
+    N_=[x for x in range(5,51, 5)]+[x for x in range(60, 101, 10)]+  [x for x in range(150, 501, 50)]+[x for x in range(1000, 10001, 500)]# num balls
     data_ = {"MSE": [], "Chi2pvalue": [], "KSpvalue": [],"n":[], "N":[], "seed": []}
     for n in n_:
         print(n)
