@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm,  binom, chi2
+from scipy.stats import norm,  binom, chi2, kstest, anderson
 import seaborn as sns
 import pandas as pd
 
@@ -37,41 +37,50 @@ class Board:
             res.append(position[0])
         return res
 
-def chi2_format(expected_counts, obs_counts):
-    i = 0
-    while np.any(expected_counts < 5):
-        if i < len(expected_counts)//2:
-            if expected_counts[i] < 5:
-                expected_counts[i+1] += expected_counts[i]
-                expected_counts = np.delete(expected_counts,i)
-                obs_counts = np.delete(obs_counts,i)
-                i-=1
-        else:
-            if expected_counts[i] < 5:
-                expected_counts[i-1] += expected_counts[i]
-                expected_counts = np.delete(expected_counts,i)
-                obs_counts = np.delete(obs_counts,i)
-                i -= 1
-        i+=1
+def chi2_p(expected_counts, obs_counts):
+    # i = 0
+    # j = len(expected_counts)-1
+    # while np.any(expected_counts < 5):
+    #     if i < len(expected_counts)//2:
+    #         if expected_counts[i] < 5:
+    #             expected_counts[i+1] += expected_counts[i]
+    #             expected_counts = np.delete(expected_counts,i)
+    #             obs_counts = np.delete(obs_counts,i)
+    #             i-=1
+    #             j-=1
+    #     if j > len(expected_counts)//2:
+    #         if expected_counts[j] < 5:
+    #             expected_counts[j-1] += expected_counts[j]
+    #             expected_counts = np.delete(expected_counts,j)
+    #             obs_counts = np.delete(obs_counts,j)
+    #     i+=1
+    #     j-=1
 
-        # if expected_counts[0] < 5:
-        #     expected_counts[1] += expected_counts[0]
-        #     obs_counts[1] += obs_counts[0]
-        #     expected_counts = expected_counts[1:]
-        #     obs_counts = obs_counts[1:]
-        # elif expected_counts[-1] < 5:
-        #     expected_counts[-2] += expected_counts[-1]
-        #     obs_counts[-2] += obs_counts[-1]
-        #     expected_counts = expected_counts[:-1]
-        #     obs_counts = obs_counts[:-1]
-        # else:
-        #     break
+    while np.any(expected_counts < 5):
+        if expected_counts[0] < 5:
+            expected_counts[1] += expected_counts[0]
+            obs_counts[1] += obs_counts[0]
+            expected_counts = expected_counts[1:]
+            obs_counts = obs_counts[1:]
+        elif expected_counts[-1] < 5:
+            expected_counts[-2] += expected_counts[-1]
+            obs_counts[-2] += obs_counts[-1]
+            expected_counts = expected_counts[:-1]
+            obs_counts = obs_counts[:-1]
+        else:
+            break
 
     chi2_stat = np.sum((obs_counts - expected_counts)**2 / expected_counts)
-    print(f"CHI2 statistic {chi2_stat}")
-    df = len(expected_counts) - 1 - 2  # minus 2 for estimated mean and std
+    # print(f"CHI2 statistic {chi2_stat}")
+    df = len(expected_counts) - 1
     p_value = 1 - chi2.cdf(chi2_stat, df)
     return p_value
+
+def kstest_p(obs_counts, mu, sigma):
+    ks_stat, ks_p = kstest(obs_counts, 'norm', args=(mu, sigma))
+    # print(f"Kolmogorov-Smirnov statistic {ks_stat}")
+    return ks_p
+
 
 def simulate(n_balls, n_levels):
     board = Board(n_balls)
@@ -89,14 +98,12 @@ def plot(experimental_data, n_levels, N_balls, b_plot=True):
 
     df = pd.DataFrame({"values": experimental_data})
 
-    # Count frequencies
+
     freqs = df["values"].value_counts(normalize=True).sort_index().reset_index()
     freqs.columns = ["value", "count"]
 
-    # Create full range of possible values (0..n_levels)
     all_values = np.arange(0, n_levels + 1)
 
-    # Merge with all possible values, filling missing frequencies with 0
     full_freqs = pd.DataFrame({"value": all_values}).merge(freqs, on="value", how="left").fillna(0)
 
     # Barplot
@@ -108,7 +115,7 @@ def plot(experimental_data, n_levels, N_balls, b_plot=True):
         plt.bar(x_vals, y_vals, width=0.8, color="skyblue", edgecolor="black", alpha=0.6, label="Experimental (Binomial)")
 
         granularity = 10
-        print(f"mu={mu}; std={std}")
+        # print(f"mu={mu}; std={std}")
         x = np.linspace(0, n_levels, granularity*n_levels+1)
         p = norm.pdf(x, mu, std)
         plt.plot(x, p, 'r', linewidth=2)
@@ -128,30 +135,46 @@ def plot(experimental_data, n_levels, N_balls, b_plot=True):
         tse+=(dif)**2
         # print(f"Difference in {c} is {dif}")
     mse = tse/(n_levels+1)
-    print(f"Mean quadratic error: {mse}")
+    # print(f"Mean quadratic error: {mse}")
 
-    # performa CHI^2
+    # CHI2
     expected_counts = y_vals.values * n_levels
     obs_counts = obs_rel * n_levels
-    p_val = chi2_format(expected_counts=expected_counts, obs_counts=obs_counts)
-    print(f"p value = {p_val}")
-    return mse, p_val
+    chi2_p_val = chi2_p(expected_counts=expected_counts, obs_counts=obs_counts)
+
+    # Kolmogorov-Smirnov
+    ks_p_val = kstest_p(obs_counts=obs_counts, mu=mu, sigma=std)
+    # print(f"CHI2 p value = {chi2_p_val}")
+
+    return mse, chi2_p_val, ks_p_val
 
 if __name__ == "__main__":
-    
-    n_=[20,80,120,300,500]  # num levels
-    N_=[10,100,500,1000,10000,20000]  # num balls
-    data_ = {"MSE": [], "Chi2pvalue": [], "n":[], "N":[]}
+
+    # simple execution
+    # data = simulate(n_balls=20000, n_levels=20)
+    # mse, chi2_, ks_ = plot(data, 20, 20000, b_plot=True)
+
+    # experiments
+
+    seeds = [42, 67, 77, 69, 13]
+    n_=[x for x in range(5, 100, 5)]  # num levels  # num levels
+    N_=[5]+[x for x in range(10, 10000, 20)]  # num balls
+    data_ = {"MSE": [], "Chi2pvalue": [], "KSpvalue": [],"n":[], "N":[], "seed": []}
     for n in n_:
+        print(n)
         for N in N_:
-            data = simulate(n_balls=N, n_levels=n)
-            print(f"min: {min(data)}, max: {max(data)}")
-            # print(data)
-            mse, chi2_ = plot(data, n, N, b_plot=True)
-            data_["MSE"].append(mse)
-            data_["Chi2pvalue"].append(chi2_)
-            data_["n"].append(n)
-            data_["N"].append(N)
+            for seed in seeds:
+                np.random.seed(seed)
+                data = simulate(n_balls=N, n_levels=n)
+                # print(f"min: {min(data)}, max: {max(data)}")
+                # print(data)
+                mse, chi2_, ks_ = plot(data, n, N, b_plot=True)
+                data_["MSE"].append(mse)
+                data_["Chi2pvalue"].append(chi2_)
+                data_["KSpvalue"].append(ks_)
+                data_["n"].append(n)
+                data_["N"].append(N)
+                data_["seed"].append(seed)
     data_ = pd.DataFrame(data_)
     data_.to_csv("./data.csv", index=False)
 
