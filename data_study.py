@@ -20,10 +20,10 @@ if __name__ == "__main__":
     )
 
     for n_val, group in meandf.groupby('n'):
-        plt.plot(group['N'], group['MSE'], marker='o', label=f"n = {n_val}")
-        plt.title(f'MSE vs N n == {n_val}')
+        plt.plot(group['N'], group['MSE'], marker='o', label=f"Number of levels = {n_val}")
+        plt.title(f'RMSE*100 vs Number of balls | Number of levels == {n_val}')
         plt.xlabel('Number of balls')
-        plt.ylabel('MSE')
+        plt.ylabel('RMSE*100')
         # plt.legend(title='Number of levels',
         # bbox_to_anchor=(1.05, 1),
         # loc='upper left',
@@ -33,11 +33,24 @@ if __name__ == "__main__":
         plt.savefig(f"./data/{n_val}plot")
         plt.close()
 
+        plt.plot(group['N'], group['Chi2pvalue'], marker='o', label=f"Number of levels = {n_val}")
+        plt.title(f'Chi2pvalue vs Number of balls | Number of levels == {n_val}')
+        plt.xlabel('Number of balls')
+        plt.ylabel('Chi2pvalue')
+        # plt.legend(title='Number of levels',
+        # bbox_to_anchor=(1.05, 1),
+        # loc='upper left',
+        # borderaxespad=0.)
+        plt.tight_layout()
+        plt.grid(True)
+        plt.savefig(f"./n_fixedChi/{n_val}nvalue_plot")
+        plt.close()
+
     for N_val, group in meandf.groupby('N'):
-        plt.plot(group['n'], group['MSE'], marker='o', label=f"N = {N_val}")
-        plt.title(f'MSE vs n for N == {N_val}')
+        plt.plot(group['n'], group['MSE'], marker='o', label=f"Number of balls = {N_val}")
+        plt.title(f'RMSE*100 vs Number of levels | Number of balls == {N_val}')
         plt.xlabel('Number of levels')
-        plt.ylabel('MSE')
+        plt.ylabel('RMSE*100')
         # plt.legend(title='Number of balls',
         # bbox_to_anchor=(1.05, 1),
         # loc='upper left',
@@ -47,6 +60,20 @@ if __name__ == "__main__":
         plt.savefig(f"./data/{N_val}plotNfixed")
         plt.close()
 
+        plt.plot(group['n'], group['Chi2pvalue'], marker='o', label=f"Number of balls = {N_val}")
+        plt.title(f'Chi2pvalue vs Number of levels | Number of balls == {N_val}')
+        plt.xlabel('Number of levels')
+        plt.ylabel('Chi2pvalue')
+        # plt.legend(title='Number of levels',
+        # bbox_to_anchor=(1.05, 1),
+        # loc='upper left',
+        # borderaxespad=0.)
+        plt.tight_layout()
+        plt.grid(True)
+        plt.savefig(f"./balls_fixedChi/{N_val}Nvalue_plot")
+        plt.close()
+    
+
     i = 0
     for Nprime in N_:
         for nprime in n_:
@@ -55,9 +82,9 @@ if __name__ == "__main__":
             meandf2 = meandf2[meandf2['n'].isin(nprime)]
             for n_val, group in meandf2.groupby('n'):
                 plt.plot(group['N'], group['MSE'], marker='o', label=f"n = {n_val}")
-            plt.title(f'MSE vs N')
+            plt.title(f'RMSE*100 vs Number of balls')
             plt.xlabel('Number of balls')
-            plt.ylabel('MSE')
+            plt.ylabel('RMSE*100')
             plt.legend(title='Number of levels',
             bbox_to_anchor=(1.05, 1),
             loc='upper left',
@@ -69,9 +96,9 @@ if __name__ == "__main__":
 
             for N_val, group in meandf2.groupby('N'):
                 plt.plot(group['n'], group['MSE'], marker='o', label=f"N = {N_val}")
-            plt.title(f'MSE vs n')
+            plt.title(f'RMSE*100 vs Number of levels')
             plt.xlabel('Number of levels')
-            plt.ylabel('MSE')
+            plt.ylabel('RMSE*100')
             plt.legend(title='Number of balls',
             bbox_to_anchor=(1.05, 1),
             loc='upper left',
@@ -89,12 +116,12 @@ if __name__ == "__main__":
                 annot=True,        # Muestra los valores dentro de cada celda
                 fmt=".4f",         # Formato numérico
                 cmap='YlOrRd',    # Colormap (puedes cambiarlo: 'coolwarm', 'plasma', etc.)
-                cbar_kws={'label': 'MSE'}
+                cbar_kws={'label': 'RMSE*100'}
             )
 
-            plt.title('Mapa de calor de MSE según n y N')
-            plt.xlabel('N')
-            plt.ylabel('n')
+            plt.title('Heatmap of RMSE*100 | Number of levels and Number of balls')
+            plt.xlabel('Number of balls')
+            plt.ylabel('Number of levels')
             plt.tight_layout()
             plt.savefig(f"./plot_together/HeatMap_iter{i}")
             plt.close()
