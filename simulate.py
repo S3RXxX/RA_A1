@@ -144,7 +144,7 @@ if __name__ == "__main__":
     seeds = [42, 67, 77, 69, 13]
     n_=[x for x in range(5, 100, 5)]  # num levels  # num levels
     N_=[x for x in range(5,51, 5)]+[x for x in range(60, 101, 10)]+  [x for x in range(150, 501, 50)]+[x for x in range(1000, 10001, 500)]# num balls
-    data_ = {"MSE": [], "Chi2pvalue": [], "KSpvalue": [],"n":[], "N":[], "seed": []}
+    data_ = {"MSE": [], "Chi2pvalue": [],"n":[], "N":[], "seed": []}
     for n in n_:
         print(n)
         for N in N_:
@@ -156,7 +156,7 @@ if __name__ == "__main__":
                 mse, chi2_, ks_ = plot(data, n, N, b_plot=True)
                 data_["MSE"].append(mse)
                 data_["Chi2pvalue"].append(chi2_)
-                data_["KSpvalue"].append(ks_)
+                #data_["KSpvalue"].append(ks_)
                 data_["n"].append(n)
                 data_["N"].append(N)
                 data_["seed"].append(seed)

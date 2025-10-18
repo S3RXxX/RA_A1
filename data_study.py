@@ -6,7 +6,10 @@ if __name__ == "__main__":
     df = pd.read_csv("data.csv")
     df['MSE'] = df['MSE']**(1/2) * 100
     df['Chi2pvalue'] = df['Chi2pvalue'].fillna(0)
-    meandf = df.groupby(['n', 'N'], as_index=False).mean(numeric_only=True)
+    meandf = df.groupby(['n', 'N'], as_index=False).agg({
+          'MSE': 'mean',
+          'Chi2pvalue': 'min',
+      })
     N_ = (
     [x for x in range(5, 51, 5)],
     [x for x in range(60, 101, 10)],
