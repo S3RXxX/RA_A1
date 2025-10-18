@@ -134,10 +134,11 @@ def plot(experimental_data, n_levels, N_balls, b_plot=True):
     return mse, chi2_p_val, ks_p_val
 
 if __name__ == "__main__":
-
+    
     # simple execution
+    #seed = 42
     # data = simulate(n_balls=20000, n_levels=20)
-    # mse, chi2_, ks_ = plot(data, 20, 20000, b_plot=True)
+    # mse, chi2_, ks_ = plot(data, 20, 20000, b_plot=False)
 
     # experiments
 
